@@ -116,6 +116,24 @@ export async function handler(
         choices?: { message?: { content?: string } }[];
         error?: { message?: string };
       };
+      if (groqRes.status === 429 && geminiKey) {
+        try {
+          const { GoogleGenAI } = await import('@google/genai');
+          const ai = new GoogleGenAI({ apiKey: geminiKey });
+          const fullConfig = { ...(config || {}), ...(tools != null && { tools }), ...(toolConfig != null && { toolConfig }) };
+          const response = await ai.models.generateContent({
+            model: model || 'gemini-2.5-flash',
+            contents: Array.isArray(contents) ? contents : [],
+            config: fullConfig,
+          });
+          const text = response.text ?? '';
+          const functionCalls = response.functionCalls;
+          return send(200, { text, functionCalls: functionCalls ?? undefined });
+        } catch (geminiErr) {
+          const msg = geminiErr instanceof Error ? geminiErr.message : String(geminiErr);
+          return send(500, { error: /429|quota/i.test(msg) ? 'Rate limit reached. Please wait a minute and try again.' : msg });
+        }
+      }
       if (!groqRes.ok) {
         const errMsg = groqData?.error?.message || groqRes.statusText || `Groq error ${groqRes.status}`;
         return send(500, { error: errMsg });
