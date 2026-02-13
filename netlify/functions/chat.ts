@@ -93,7 +93,29 @@ export async function handler(
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       const is429 = /429|RESOURCE_EXHAUSTED|quota exceeded|rate limit/i.test(msg);
-      return send(500, { error: is429 ? 'Rate limit reached. Please wait a minute and try again.' : msg });
+      if (is429 && groqKey) {
+        const messages = toGroqMessages(Array.isArray(contents) ? contents : [], config?.systemInstruction);
+        if (messages.length > 0) {
+          try {
+            const groqRes = await fetch(GROQ_CHAT_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${groqKey}` },
+              body: JSON.stringify({
+                model: GROQ_MODEL,
+                messages,
+                temperature: typeof config?.temperature === 'number' ? config.temperature : 0.5,
+              }),
+            });
+            const groqData = (await groqRes.json()) as { choices?: { message?: { content?: string } }[] };
+            if (groqRes.ok && groqData?.choices?.[0]?.message?.content) {
+              return send(200, { text: groqData.choices[0].message.content });
+            }
+          } catch (_) {
+            /* fall through to error */
+          }
+        }
+      }
+      return send(500, { error: is429 ? 'Rate limit reached. Please try again in a few minutes.' : msg });
     }
   }
 
