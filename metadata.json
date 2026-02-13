@@ -1,0 +1,5 @@
+{
+  "name": "VetLab Kaz",
+  "description": "Advanced veterinary laboratory and research center in Kazakhstan, specialized in complex diagnostics and pathology.",
+  "requestFramePermissions": ["geolocation", "microphone"]
+}

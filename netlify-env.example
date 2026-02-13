@@ -1,0 +1,10 @@
+# Copy this file, replace the placeholder values with your real keys, then in Netlify:
+# Site configuration → Environment variables → Import from .env file → paste or upload.
+
+# AI assistant (use at least one)
+GROQ_API_KEY=your-groq-api-key-here
+VITE_API_KEY=your-google-gemini-key-here
+
+# Supabase (auth, database)
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key-here

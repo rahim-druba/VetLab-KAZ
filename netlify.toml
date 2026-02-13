@@ -1,0 +1,18 @@
+# Build the Vite app
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+# So the frontend can keep calling /api/chat (same as localhost)
+[[redirects]]
+  from = "/api/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+  force = true
+
+# SPA: serve index.html for all routes (static files like /assets/* are still served from dist)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
